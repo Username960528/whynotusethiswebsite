@@ -199,6 +199,138 @@
                     transform: rotate(360deg);
                }
           }
+
+          /* Modal styles */
+          .modal-overlay {
+               position: fixed;
+               top: 0;
+               left: 0;
+               width: 100%;
+               height: 100%;
+               background: rgba(0, 0, 0, 0.8);
+               backdrop-filter: blur(8px);
+               z-index: 1000;
+               display: flex;
+               align-items: center;
+               justify-content: center;
+               opacity: 0;
+               visibility: hidden;
+               transition: all 0.3s ease;
+          }
+
+          .modal-overlay.active {
+               opacity: 1;
+               visibility: visible;
+          }
+
+          .modal-content {
+               background: rgba(20, 20, 30, 0.95);
+               border: 1px solid rgba(255, 255, 255, 0.1);
+               border-radius: 24px;
+               padding: 32px;
+               max-width: 500px;
+               width: 90%;
+               max-height: 90vh;
+               overflow-y: auto;
+               transform: scale(0.9) translateY(20px);
+               transition: transform 0.3s ease;
+          }
+
+          .modal-overlay.active .modal-content {
+               transform: scale(1) translateY(0);
+          }
+
+          /* Toggle switch */
+          .toggle-switch {
+               position: relative;
+               width: 48px;
+               height: 24px;
+               background: rgba(255, 255, 255, 0.1);
+               border-radius: 12px;
+               cursor: pointer;
+               transition: background 0.3s;
+          }
+
+          .toggle-switch.active {
+               background: linear-gradient(90deg, #4f46e5, #db2777);
+          }
+
+          .toggle-switch::after {
+               content: '';
+               position: absolute;
+               top: 2px;
+               left: 2px;
+               width: 20px;
+               height: 20px;
+               background: white;
+               border-radius: 50%;
+               transition: transform 0.3s;
+          }
+
+          .toggle-switch.active::after {
+               transform: translateX(24px);
+          }
+
+          /* File drop zone */
+          .drop-zone {
+               border: 2px dashed rgba(255, 255, 255, 0.2);
+               border-radius: 16px;
+               padding: 24px;
+               text-align: center;
+               transition: all 0.3s;
+               cursor: pointer;
+          }
+
+          .drop-zone:hover,
+          .drop-zone.drag-over {
+               border-color: #db2777;
+               background: rgba(219, 39, 119, 0.1);
+          }
+
+          .drop-zone.has-file {
+               border-color: #10b981;
+               background: rgba(16, 185, 129, 0.1);
+          }
+
+          /* Tab buttons */
+          .tab-btn {
+               padding: 8px 16px;
+               border-radius: 8px;
+               background: transparent;
+               color: #9ca3af;
+               border: 1px solid transparent;
+               cursor: pointer;
+               transition: all 0.3s;
+          }
+
+          .tab-btn.active {
+               background: rgba(79, 70, 229, 0.2);
+               color: #818cf8;
+               border-color: rgba(79, 70, 229, 0.3);
+          }
+
+          .tab-btn:hover:not(.active) {
+               background: rgba(255, 255, 255, 0.05);
+          }
+
+          /* Success animation */
+          @keyframes successPulse {
+               0% {
+                    transform: scale(1);
+               }
+
+               50% {
+                    transform: scale(1.1);
+               }
+
+               100% {
+                    transform: scale(1);
+               }
+          }
+
+          .success-icon {
+               animation: successPulse 0.5s ease;
+          }
      </style>
 </head>
 
@@ -299,6 +431,17 @@
                          </div>
                     </div>
 
+                    <!-- Self-Destructing Content Card -->
+                    <div id="create-content-card"
+                         class="project-card flex items-center justify-center glass-effect rounded-2xl border-2 border-dashed border-pink-700 cursor-pointer hover:border-pink-400 hover:bg-gray-900/50">
+                         <div class="text-center p-6">
+                              <p class="text-2xl font-bold mb-2">🔥</p>
+                              <p class="text-gray-400 font-semibold">Временный контент</p>
+                              <p class="text-sm text-gray-500 mt-1">Текст, ссылка или файл с автоудалением</p>
+                         </div>
+                    </div>
+
+
                </div>
           </section>
 
@@ -361,6 +504,134 @@
      <footer class="text-center py-8 text-gray-600 text-sm">
           <p>&copy; 2024 whynotusethis.website. Все права защищены.</p>
      </footer>
+
+     <!-- Self-Destructing Content Modal -->
+     <div id="content-modal" class="modal-overlay">
+          <div class="modal-content">
+               <!-- Modal Header -->
+               <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold gradient-text">🔥 Создать временный контент</h2>
+                    <button id="close-modal-btn" class="text-gray-400 hover:text-white transition-colors">
+                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                   d="M6 18L18 6M6 6l12 12" />
+                         </svg>
+                    </button>
+               </div>
+
+               <!-- Form states -->
+               <div id="modal-form-state">
+                    <!-- Content Type Tabs -->
+                    <div class="flex gap-2 mb-6">
+                         <button class="tab-btn active" data-type="text">📝 Текст</button>
+                         <button class="tab-btn" data-type="link">🔗 Ссылка</button>
+                         <button class="tab-btn" data-type="file">📁 Файл</button>
+                    </div>
+
+                    <!-- Text/Link Input -->
+                    <div id="text-input-section" class="mb-6">
+                         <label class="block text-sm text-gray-400 mb-2">Ваш контент</label>
+                         <textarea id="content-input" rows="4"
+                              class="w-full bg-gray-800/50 border border-gray-700 rounded-xl p-4 text-white placeholder-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-colors resize-none"
+                              placeholder="Введите текст или ссылку..."></textarea>
+                    </div>
+
+                    <!-- File Upload Zone -->
+                    <div id="file-input-section" class="mb-6 hidden">
+                         <label class="block text-sm text-gray-400 mb-2">Загрузите изображение</label>
+                         <div id="drop-zone" class="drop-zone">
+                              <input type="file" id="file-input" accept="image/*" class="hidden">
+                              <div id="drop-zone-content">
+                                   <svg class="w-12 h-12 mx-auto text-gray-500 mb-3" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                             d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                   </svg>
+                                   <p class="text-gray-400">Перетащите файл сюда или <span
+                                             class="text-indigo-400">выберите</span></p>
+                                   <p class="text-sm text-gray-500 mt-1">PNG, JPG, GIF, WEBP до 10MB</p>
+                              </div>
+                              <div id="drop-zone-file" class="hidden">
+                                   <div class="flex items-center justify-center gap-3">
+                                        <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor"
+                                             viewBox="0 0 24 24">
+                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                  d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        <span id="selected-file-name" class="text-gray-300"></span>
+                                   </div>
+                                   <button id="remove-file-btn"
+                                        class="text-sm text-red-400 hover:text-red-300 mt-2">Удалить</button>
+                              </div>
+                         </div>
+                    </div>
+
+                    <!-- Auto-delete Toggle -->
+                    <div class="mb-6 p-4 bg-gray-800/30 rounded-xl">
+                         <div class="flex items-center justify-between">
+                              <div>
+                                   <p class="text-white font-medium">Автоудаление после просмотра</p>
+                                   <p class="text-sm text-gray-500">Контент исчезнет через указанное время</p>
+                              </div>
+                              <div id="auto-delete-toggle" class="toggle-switch active"></div>
+                         </div>
+
+                         <!-- Timer Selection -->
+                         <div id="timer-options" class="mt-4 grid grid-cols-5 gap-2">
+                              <button class="timer-btn tab-btn active" data-minutes="1">1 мин</button>
+                              <button class="timer-btn tab-btn" data-minutes="5">5 мин</button>
+                              <button class="timer-btn tab-btn" data-minutes="15">15 мин</button>
+                              <button class="timer-btn tab-btn" data-minutes="60">1 час</button>
+                              <button class="timer-btn tab-btn" data-minutes="1440">24 часа</button>
+                         </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button id="create-content-btn"
+                         class="w-full py-4 bg-gradient-to-r from-indigo-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 rounded-xl font-bold text-white transition-all transform hover:scale-[1.02]">
+                         Создать и получить ссылку
+                    </button>
+               </div>
+
+               <!-- Success state -->
+               <div id="modal-success-state" class="hidden text-center py-8">
+                    <div class="success-icon text-6xl mb-4">✅</div>
+                    <h3 class="text-xl font-bold text-white mb-2">Контент создан!</h3>
+                    <p class="text-gray-400 mb-6">Скопируйте ссылку и отправьте её получателю</p>
+
+                    <div class="flex items-center gap-2 mb-6">
+                         <input id="result-url" type="text" readonly
+                              class="flex-1 bg-gray-800/50 border border-gray-700 rounded-xl p-4 text-indigo-400 text-sm">
+                         <button id="copy-url-btn"
+                              class="px-6 py-4 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-semibold transition-colors">
+                              📋 Копировать
+                         </button>
+                    </div>
+
+                    <p id="copy-feedback" class="text-green-400 text-sm mb-6 hidden">Ссылка скопирована!</p>
+
+                    <button id="create-another-btn" class="text-indigo-400 hover:text-indigo-300 transition-colors">
+                         ← Создать ещё
+                    </button>
+               </div>
+
+               <!-- Loading state -->
+               <div id="modal-loading-state" class="hidden text-center py-12">
+                    <div class="spinner mx-auto mb-4" style="width: 48px; height: 48px; border-width: 4px;"></div>
+                    <p class="text-gray-400">Создаём контент...</p>
+               </div>
+
+               <!-- Error state -->
+               <div id="modal-error-state" class="hidden text-center py-8">
+                    <div class="text-6xl mb-4">❌</div>
+                    <h3 class="text-xl font-bold text-red-400 mb-2">Ошибка</h3>
+                    <p id="error-message" class="text-gray-400 mb-6"></p>
+                    <button id="retry-btn" class="text-indigo-400 hover:text-indigo-300 transition-colors">
+                         ← Попробовать снова
+                    </button>
+               </div>
+          </div>
+     </div>
 
      <script>
           // --- 3D Scene Setup ---
@@ -661,6 +932,9 @@
                     generateCard.addEventListener('click', generateProjectIdea);
                }
 
+               // --- Self-Destructing Content Modal Setup ---
+               setupContentModal();
+
                // Wait for the typing animation to finish
                setTimeout(() => {
                     // Run the first SINGLE glitch sequence immediately.
@@ -689,6 +963,252 @@
                setupScrollReveal();
           };
           document.head.appendChild(gsapScript);
+
+          // --- Self-Destructing Content Modal Logic ---
+          function setupContentModal() {
+               const API_BASE = '/api';
+
+               // Elements
+               const modal = document.getElementById('content-modal');
+               const openBtn = document.getElementById('create-content-card');
+               const closeBtn = document.getElementById('close-modal-btn');
+               const typeTabs = document.querySelectorAll('.tab-btn[data-type]');
+               const timerBtns = document.querySelectorAll('.timer-btn');
+               const autoDeleteToggle = document.getElementById('auto-delete-toggle');
+               const timerOptions = document.getElementById('timer-options');
+               const textInputSection = document.getElementById('text-input-section');
+               const fileInputSection = document.getElementById('file-input-section');
+               const contentInput = document.getElementById('content-input');
+               const fileInput = document.getElementById('file-input');
+               const dropZone = document.getElementById('drop-zone');
+               const dropZoneContent = document.getElementById('drop-zone-content');
+               const dropZoneFile = document.getElementById('drop-zone-file');
+               const selectedFileName = document.getElementById('selected-file-name');
+               const removeFileBtn = document.getElementById('remove-file-btn');
+               const createBtn = document.getElementById('create-content-btn');
+               const resultUrl = document.getElementById('result-url');
+               const copyUrlBtn = document.getElementById('copy-url-btn');
+               const copyFeedback = document.getElementById('copy-feedback');
+               const createAnotherBtn = document.getElementById('create-another-btn');
+               const retryBtn = document.getElementById('retry-btn');
+               const errorMessage = document.getElementById('error-message');
+
+               // State
+               let currentType = 'text';
+               let currentTimer = 1;
+               let autoDelete = true;
+               let selectedFile = null;
+
+               // Modal open/close
+               openBtn.addEventListener('click', () => {
+                    modal.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+               });
+
+               function closeModal() {
+                    modal.classList.remove('active');
+                    document.body.style.overflow = '';
+                    resetForm();
+               }
+
+               closeBtn.addEventListener('click', closeModal);
+               modal.addEventListener('click', (e) => {
+                    if (e.target === modal) closeModal();
+               });
+
+               document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && modal.classList.contains('active')) {
+                         closeModal();
+                    }
+               });
+
+               // Type tabs
+               typeTabs.forEach(tab => {
+                    tab.addEventListener('click', () => {
+                         typeTabs.forEach(t => t.classList.remove('active'));
+                         tab.classList.add('active');
+                         currentType = tab.dataset.type;
+
+                         if (currentType === 'file') {
+                              textInputSection.classList.add('hidden');
+                              fileInputSection.classList.remove('hidden');
+                         } else {
+                              textInputSection.classList.remove('hidden');
+                              fileInputSection.classList.add('hidden');
+                              contentInput.placeholder = currentType === 'link'
+                                   ? 'https://example.com'
+                                   : 'Введите ваш текст...';
+                         }
+                    });
+               });
+
+               // Timer buttons
+               timerBtns.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                         timerBtns.forEach(b => b.classList.remove('active'));
+                         btn.classList.add('active');
+                         currentTimer = parseInt(btn.dataset.minutes);
+                    });
+               });
+
+               // Auto-delete toggle
+               autoDeleteToggle.addEventListener('click', () => {
+                    autoDelete = !autoDelete;
+                    autoDeleteToggle.classList.toggle('active', autoDelete);
+                    timerOptions.style.display = autoDelete ? 'grid' : 'none';
+               });
+
+               // File drag & drop
+               dropZone.addEventListener('click', () => fileInput.click());
+
+               dropZone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    dropZone.classList.add('drag-over');
+               });
+
+               dropZone.addEventListener('dragleave', () => {
+                    dropZone.classList.remove('drag-over');
+               });
+
+               dropZone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    dropZone.classList.remove('drag-over');
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                         handleFile(files[0]);
+                    }
+               });
+
+               fileInput.addEventListener('change', () => {
+                    if (fileInput.files.length > 0) {
+                         handleFile(fileInput.files[0]);
+                    }
+               });
+
+               function handleFile(file) {
+                    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                    if (!allowedTypes.includes(file.type)) {
+                         alert('Разрешены только изображения: PNG, JPG, GIF, WEBP');
+                         return;
+                    }
+                    if (file.size > 10 * 1024 * 1024) {
+                         alert('Файл слишком большой. Максимум 10MB.');
+                         return;
+                    }
+
+                    selectedFile = file;
+                    selectedFileName.textContent = file.name;
+                    dropZoneContent.classList.add('hidden');
+                    dropZoneFile.classList.remove('hidden');
+                    dropZone.classList.add('has-file');
+               }
+
+               removeFileBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    clearFile();
+               });
+
+               function clearFile() {
+                    selectedFile = null;
+                    fileInput.value = '';
+                    dropZoneContent.classList.remove('hidden');
+                    dropZoneFile.classList.add('hidden');
+                    dropZone.classList.remove('has-file');
+               }
+
+               // Form states
+               function showState(state) {
+                    ['form', 'success', 'loading', 'error'].forEach(s => {
+                         document.getElementById(`modal-${s}-state`).classList.toggle('hidden', s !== state);
+                    });
+               }
+
+               function resetForm() {
+                    showState('form');
+                    contentInput.value = '';
+                    clearFile();
+                    typeTabs.forEach(t => t.classList.remove('active'));
+                    typeTabs[0].classList.add('active');
+                    currentType = 'text';
+                    textInputSection.classList.remove('hidden');
+                    fileInputSection.classList.add('hidden');
+               }
+
+               // Create content
+               createBtn.addEventListener('click', async () => {
+                    const content = contentInput.value.trim();
+
+                    if (currentType !== 'file' && !content) {
+                         alert('Пожалуйста, введите контент');
+                         return;
+                    }
+
+                    if (currentType === 'file' && !selectedFile) {
+                         alert('Пожалуйста, выберите файл');
+                         return;
+                    }
+
+                    showState('loading');
+
+                    try {
+                         const formData = new FormData();
+                         formData.append('type', currentType);
+                         formData.append('content', content);
+                         formData.append('autoDelete', autoDelete);
+                         formData.append('deleteAfterMinutes', currentTimer);
+
+                         if (selectedFile) {
+                              formData.append('file', selectedFile);
+                         }
+
+                         const response = await fetch(`${API_BASE}/content`, {
+                              method: 'POST',
+                              body: formData
+                         });
+
+                         const data = await response.json();
+
+                         if (!response.ok || !data.success) {
+                              throw new Error(data.error || 'Ошибка создания контента');
+                         }
+
+                         const fullUrl = `${window.location.origin}/view/${data.uuid}`;
+                         resultUrl.value = fullUrl;
+                         showState('success');
+
+                    } catch (error) {
+                         console.error('Error creating content:', error);
+                         errorMessage.textContent = error.message;
+                         showState('error');
+                    }
+               });
+
+               // Copy URL
+               copyUrlBtn.addEventListener('click', async () => {
+                    try {
+                         await navigator.clipboard.writeText(resultUrl.value);
+                         copyFeedback.classList.remove('hidden');
+                         setTimeout(() => {
+                              copyFeedback.classList.add('hidden');
+                         }, 2000);
+                    } catch (err) {
+                         // Fallback for older browsers
+                         resultUrl.select();
+                         document.execCommand('copy');
+                         copyFeedback.classList.remove('hidden');
+                    }
+               });
+
+               // Create another
+               createAnotherBtn.addEventListener('click', () => {
+                    resetForm();
+               });
+
+               // Retry on error
+               retryBtn.addEventListener('click', () => {
+                    showState('form');
+               });
+          }
 
      </script>
 </body>

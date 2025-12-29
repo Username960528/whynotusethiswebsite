@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <title>Просмотр контента - whynotusethis.website</title>
+
+     <!-- Tailwind CSS -->
+     <script src="https://cdn.tailwindcss.com"></script>
+
+     <!-- Google Fonts: Inter -->
+     <link rel="preconnect" href="https://fonts.googleapis.com">
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+     <style>
+          body {
+               font-family: 'Inter', sans-serif;
+               background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0a0a0a 100%);
+               color: #e0e0e0;
+               min-height: 100vh;
+          }
+
+          .glass-effect {
+               background: rgba(16, 16, 16, 0.8);
+               backdrop-filter: blur(20px);
+               -webkit-backdrop-filter: blur(20px);
+               border: 1px solid rgba(255, 255, 255, 0.1);
+          }
+
+          .gradient-text {
+               background: linear-gradient(90deg, #4f46e5, #db2777);
+               -webkit-background-clip: text;
+               -webkit-text-fill-color: transparent;
+          }
+
+          .timer-ring {
+               stroke-dasharray: 283;
+               stroke-dashoffset: 0;
+               transition: stroke-dashoffset 1s linear;
+          }
+
+          @keyframes pulse-glow {
+
+               0%,
+               100% {
+                    box-shadow: 0 0 20px rgba(219, 39, 119, 0.3);
+               }
+
+               50% {
+                    box-shadow: 0 0 40px rgba(219, 39, 119, 0.6);
+               }
+          }
+
+          .pulse-warning {
+               animation: pulse-glow 1s ease-in-out infinite;
+          }
+
+          @keyframes fadeIn {
+               from {
+                    opacity: 0;
+                    transform: translateY(20px);
+               }
+
+               to {
+                    opacity: 1;
+                    transform: translateY(0);
+               }
+          }
+
+          .fade-in {
+               animation: fadeIn 0.5s ease-out;
+          }
+
+          .content-box {
+               word-break: break-word;
+               white-space: pre-wrap;
+          }
+
+          /* Particle background */
+          .particles {
+               position: fixed;
+               top: 0;
+               left: 0;
+               width: 100%;
+               height: 100%;
+               pointer-events: none;
+               overflow: hidden;
+               z-index: -1;
+          }
+
+          .particle {
+               position: absolute;
+               width: 2px;
+               height: 2px;
+               background: rgba(79, 70, 229, 0.5);
+               border-radius: 50%;
+               animation: float 15s infinite;
+          }
+
+          @keyframes float {
+
+               0%,
+               100% {
+                    transform: translateY(100vh) rotate(0deg);
+                    opacity: 0;
+               }
+
+               10% {
+                    opacity: 1;
+               }
+
+               90% {
+                    opacity: 1;
+               }
+
+               100% {
+                    transform: translateY(-100vh) rotate(720deg);
+                    opacity: 0;
+               }
+          }
+     </style>
+</head>
+
+<body class="antialiased flex items-center justify-center p-4">
+     <!-- Particles background -->
+     <div class="particles" id="particles"></div>
+
+     <!-- Main container -->
+     <div class="max-w-2xl w-full fade-in">
+          <!-- Loading state -->
+          <div id="loading-state" class="glass-effect rounded-3xl p-12 text-center">
+               <div
+                    class="inline-block w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-4">
+               </div>
+               <p class="text-gray-400">Загрузка контента...</p>
+          </div>
+
+          <!-- Error state -->
+          <div id="error-state" class="hidden glass-effect rounded-3xl p-12 text-center">
+               <div class="text-6xl mb-4">💨</div>
+               <h1 class="text-2xl font-bold text-gray-200 mb-2">Контент не найден</h1>
+               <p id="error-message" class="text-gray-400 mb-6">Контент был удалён или не существует</p>
+               <a href="/"
+                    class="inline-block px-6 py-3 bg-indigo-600 hover:bg-indigo-700 rounded-xl font-semibold transition-colors">
+                    На главную
+               </a>
+          </div>
+
+          <!-- Content state -->
+          <div id="content-state" class="hidden">
+               <!-- Timer header -->
+               <div id="timer-section" class="hidden mb-6">
+                    <div class="glass-effect rounded-2xl p-4 flex items-center justify-between pulse-warning">
+                         <div class="flex items-center gap-3">
+                              <svg class="w-8 h-8" viewBox="0 0 100 100">
+                                   <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.1)"
+                                        stroke-width="8" />
+                                   <circle id="timer-circle" cx="50" cy="50" r="45" fill="none" stroke="#db2777"
+                                        stroke-width="8" class="timer-ring" transform="rotate(-90 50 50)" />
+                              </svg>
+                              <div>
+                                   <p class="text-sm text-gray-400">Самоуничтожение через</p>
+                                   <p id="timer-display" class="text-xl font-bold gradient-text">--:--</p>
+                              </div>
+                         </div>
+                         <div class="text-right">
+                              <span class="text-xs text-gray-500">После просмотра контент будет удалён</span>
+                         </div>
+                    </div>
+               </div>
+
+               <!-- Content card -->
+               <div class="glass-effect rounded-3xl overflow-hidden">
+                    <!-- Header -->
+                    <div class="p-6 border-b border-gray-800">
+                         <div class="flex items-center justify-between">
+                              <h1 class="text-xl font-bold gradient-text">Временный контент</h1>
+                              <span id="content-type-badge"
+                                   class="px-3 py-1 rounded-full text-sm bg-indigo-600/20 text-indigo-400"></span>
+                         </div>
+                    </div>
+
+                    <!-- Content body -->
+                    <div class="p-6">
+                         <!-- Text content -->
+                         <div id="text-content" class="hidden">
+                              <p id="content-text" class="content-box text-lg text-gray-200 leading-relaxed"></p>
+                         </div>
+
+                         <!-- Link content -->
+                         <div id="link-content" class="hidden">
+                              <a id="content-link" href="#" target="_blank" rel="noopener noreferrer"
+                                   class="block p-4 rounded-xl bg-indigo-600/10 border border-indigo-600/30 hover:bg-indigo-600/20 transition-colors">
+                                   <div class="flex items-center gap-3">
+                                        <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor"
+                                             viewBox="0 0 24 24">
+                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                        </svg>
+                                        <span id="link-text" class="text-indigo-400 break-all"></span>
+                                   </div>
+                              </a>
+                         </div>
+
+                         <!-- File/Image content -->
+                         <div id="file-content" class="hidden">
+                              <div class="space-y-4">
+                                   <div id="image-preview" class="hidden">
+                                        <img id="content-image" src="" alt="Загруженное изображение"
+                                             class="max-w-full rounded-xl mx-auto shadow-2xl">
+                                   </div>
+                                   <button id="download-btn"
+                                        class="w-full flex items-center justify-center gap-3 p-4 rounded-xl bg-pink-600/20 border border-pink-600/30 hover:bg-pink-600/30 transition-colors text-pink-400">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                        </svg>
+                                        <span id="file-name">Скачать файл</span>
+                                   </button>
+                              </div>
+                         </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="p-6 border-t border-gray-800 flex items-center justify-between">
+                         <span id="created-at" class="text-sm text-gray-500"></span>
+                         <a href="/" class="text-sm text-indigo-400 hover:text-indigo-300 transition-colors">
+                              Создать свой контент →
+                         </a>
+                    </div>
+               </div>
+          </div>
+     </div>
+
+     <script>
+          const API_BASE = '/api';
+          let timerInterval = null;
+          let totalSeconds = 0;
+
+          // Get UUID from URL
+          function getUUID() {
+               const path = window.location.pathname;
+               const match = path.match(/\/view\/([a-f0-9-]+)/i);
+               return match ? match[1] : null;
+          }
+
+          // Create particles
+          function createParticles() {
+               const container = document.getElementById('particles');
+               for (let i = 0; i < 50; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.style.left = Math.random() * 100 + '%';
+                    particle.style.animationDelay = Math.random() * 15 + 's';
+                    particle.style.animationDuration = (10 + Math.random() * 10) + 's';
+                    container.appendChild(particle);
+               }
+          }
+
+          // Format time
+          function formatTime(seconds) {
+               if (seconds <= 0) return '00:00';
+               const mins = Math.floor(seconds / 60);
+               const secs = seconds % 60;
+               return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+          }
+
+          // Update timer display
+          function updateTimer(remaining) {
+               const display = document.getElementById('timer-display');
+               const circle = document.getElementById('timer-circle');
+
+               display.textContent = formatTime(remaining);
+
+               // Update circle progress
+               const progress = totalSeconds > 0 ? (remaining / totalSeconds) : 0;
+               const offset = 283 * (1 - progress);
+               circle.style.strokeDashoffset = offset;
+
+               if (remaining <= 10) {
+                    display.classList.add('text-red-500');
+               }
+          }
+
+          // Start countdown timer
+          function startTimer(seconds) {
+               totalSeconds = seconds;
+               let remaining = seconds;
+
+               document.getElementById('timer-section').classList.remove('hidden');
+               updateTimer(remaining);
+
+               timerInterval = setInterval(() => {
+                    remaining--;
+                    updateTimer(remaining);
+
+                    if (remaining <= 0) {
+                         clearInterval(timerInterval);
+                         showExpired();
+                    }
+               }, 1000);
+          }
+
+          // Show expired state
+          function showExpired() {
+               document.getElementById('content-state').classList.add('hidden');
+               document.getElementById('error-state').classList.remove('hidden');
+               document.getElementById('error-message').textContent = 'Контент был автоматически удалён';
+          }
+
+          // Show error
+          function showError(message) {
+               document.getElementById('loading-state').classList.add('hidden');
+               document.getElementById('error-state').classList.remove('hidden');
+               document.getElementById('error-message').textContent = message;
+          }
+
+          // Show content
+          function showContent(data) {
+               document.getElementById('loading-state').classList.add('hidden');
+               document.getElementById('content-state').classList.remove('hidden');
+
+               const { type, content, fileName, hasFile, autoDelete, remainingSeconds, createdAt } = data;
+
+               // Type badge
+               const typeBadge = document.getElementById('content-type-badge');
+               const typeLabels = { text: 'Текст', link: 'Ссылка', file: 'Файл' };
+               typeBadge.textContent = typeLabels[type] || type;
+
+               // Show appropriate content type
+               if (type === 'text') {
+                    document.getElementById('text-content').classList.remove('hidden');
+                    document.getElementById('content-text').textContent = content;
+               } else if (type === 'link') {
+                    document.getElementById('link-content').classList.remove('hidden');
+                    document.getElementById('content-link').href = content;
+                    document.getElementById('link-text').textContent = content;
+               } else if (type === 'file' || hasFile) {
+                    document.getElementById('file-content').classList.remove('hidden');
+                    document.getElementById('file-name').textContent = `Скачать: ${fileName}`;
+
+                    // If it's an image, show preview
+                    if (fileName && /\.(jpg|jpeg|png|gif|webp)$/i.test(fileName)) {
+                         const uuid = getUUID();
+                         document.getElementById('image-preview').classList.remove('hidden');
+                         document.getElementById('content-image').src = `${API_BASE}/content/${uuid}/download`;
+                    }
+
+                    // Download button
+                    document.getElementById('download-btn').addEventListener('click', () => {
+                         const uuid = getUUID();
+                         window.location.href = `${API_BASE}/content/${uuid}/download`;
+                    });
+               }
+
+               // Also show text if file has text content
+               if (hasFile && content) {
+                    document.getElementById('text-content').classList.remove('hidden');
+                    document.getElementById('content-text').textContent = content;
+               }
+
+               // Created date
+               if (createdAt) {
+                    const date = new Date(createdAt * 1000);
+                    document.getElementById('created-at').textContent = `Создано: ${date.toLocaleString('ru-RU')}`;
+               }
+
+               // Start timer if auto-delete is enabled
+               if (autoDelete && remainingSeconds !== null) {
+                    startTimer(remainingSeconds);
+               }
+          }
+
+          // Load content
+          async function loadContent() {
+               const uuid = getUUID();
+
+               if (!uuid) {
+                    showError('Неверная ссылка');
+                    return;
+               }
+
+               try {
+                    const response = await fetch(`${API_BASE}/content/${uuid}`);
+                    const data = await response.json();
+
+                    if (!response.ok || !data.success) {
+                         showError(data.error || 'Контент не найден');
+                         return;
+                    }
+
+                    showContent(data.content);
+               } catch (error) {
+                    console.error('Error loading content:', error);
+                    showError('Ошибка загрузки контента');
+               }
+          }
+
+          // Initialize
+          document.addEventListener('DOMContentLoaded', () => {
+               createParticles();
+               loadContent();
+          });
+     </script>
+</body>
+
+</html>
