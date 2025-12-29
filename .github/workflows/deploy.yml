@@ -13,12 +13,25 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Deploy to server via SSH
+      - name: Deploy files to server
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "index.html"
+          source: "index.html,view.html,backend/server.js,backend/database.js,backend/package.json,deploy/"
           target: "/var/www/whynotusethis.website/"
           overwrite: true
+
+      - name: Install dependencies and restart services
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /var/www/whynotusethis.website/backend
+            npm install --production
+            systemctl restart whynotusethis-backend || true
+            systemctl reload nginx || true
+            echo "✅ Deploy completed!"
