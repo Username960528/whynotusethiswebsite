@@ -1,0 +1,184 @@
+{
+  "nodes": [
+    {
+      "id": "node_1764179559788_bado7",
+      "label": "Selenium",
+      "title": "Selenium",
+      "description": "",
+      "category": "Core",
+      "color": {
+        "background": "#3498db",
+        "border": "#2980b9"
+      }
+    },
+    {
+      "id": "node_1764179563498_prmpv",
+      "label": "Page Object Model",
+      "title": "Паттерн проектирования для структурирования тестов Selenium.",
+      "description": "Паттерн проектирования для структурирования тестов Selenium.",
+      "category": "Patterns",
+      "color": {
+        "background": "#f39c12",
+        "border": "#e67e22"
+      }
+    },
+    {
+      "id": "node_1764179563499_b4x96",
+      "label": "pytest Fixtures",
+      "title": "Управление тестовыми данными и окружением в pytest.",
+      "description": "Управление тестовыми данными и окружением в pytest.",
+      "category": "Tools",
+      "color": {
+        "background": "#2ecc71",
+        "border": "#27ae60"
+      }
+    },
+    {
+      "id": "node_1764179563499_a9brs",
+      "label": "requests Library",
+      "title": "Отправка HTTP запросов для API тестирования.",
+      "description": "Отправка HTTP запросов для API тестирования.",
+      "category": "Tools",
+      "color": {
+        "background": "#2ecc71",
+        "border": "#27ae60"
+      }
+    },
+    {
+      "id": "node_1764179563500_ttr33",
+      "label": "AAA Testing Pattern",
+      "title": "Arrange-Act-Assert: структура для понятных тестов.",
+      "description": "Arrange-Act-Assert: структура для понятных тестов.",
+      "category": "Patterns",
+      "color": {
+        "background": "#f39c12",
+        "border": "#e67e22"
+      }
+    },
+    {
+      "id": "node_1764179563500_jooab",
+      "label": "Selenium Grid",
+      "title": "Распределенный запуск тестов Selenium на разных машинах.",
+      "description": "Распределенный запуск тестов Selenium на разных машинах.",
+      "category": "Tools",
+      "color": {
+        "background": "#2ecc71",
+        "border": "#27ae60"
+      }
+    },
+    {
+      "id": "node_1764179563500_67cdy",
+      "label": "Explicit Waits",
+      "title": "Явные ожидания Selenium для стабильности тестов.",
+      "description": "Явные ожидания Selenium для стабильности тестов.",
+      "category": "Testing",
+      "color": {
+        "background": "#9b59b6",
+        "border": "#8e44ad"
+      }
+    },
+    {
+      "id": "node_1764179563501_weuk2",
+      "label": "pytest-html",
+      "title": "Генерация HTML отчетов о результатах тестов.",
+      "description": "Генерация HTML отчетов о результатах тестов.",
+      "category": "Tools",
+      "color": {
+        "background": "#2ecc71",
+        "border": "#27ae60"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "node_1764179559788_bado7",
+      "to": "node_1764179563498_prmpv",
+      "label": "организация кода",
+      "color": {
+        "color": "#2ecc71",
+        "highlight": "#58d68d"
+      },
+      "dashes": [
+        5,
+        5
+      ],
+      "edgeType": "branchial",
+      "id": "0c43ed63-ccf9-4660-9199-d56188f4fc99"
+    },
+    {
+      "from": "node_1764179559788_bado7",
+      "to": "node_1764179563499_b4x96",
+      "label": "основа тестов",
+      "color": {
+        "color": "#e74c3c",
+        "highlight": "#ff6b5b"
+      },
+      "dashes": false,
+      "edgeType": "causal",
+      "id": "20c2978c-3657-4438-9ed3-ca1a8d29d858"
+    },
+    {
+      "from": "node_1764179559788_bado7",
+      "to": "node_1764179563499_a9brs",
+      "label": "альтернатива Selenium",
+      "color": {
+        "color": "#e74c3c",
+        "highlight": "#ff6b5b"
+      },
+      "dashes": false,
+      "edgeType": "causal",
+      "id": "99a31447-ed08-4d53-9e60-4257af43c3bc"
+    },
+    {
+      "from": "node_1764179559788_bado7",
+      "to": "node_1764179563500_ttr33",
+      "label": "стиль написания",
+      "color": {
+        "color": "#2ecc71",
+        "highlight": "#58d68d"
+      },
+      "dashes": [
+        5,
+        5
+      ],
+      "edgeType": "branchial",
+      "id": "07601068-92d5-4eb7-bb91-8de2e9045254"
+    },
+    {
+      "from": "node_1764179559788_bado7",
+      "to": "node_1764179563500_jooab",
+      "label": "масштабирование тестов",
+      "color": {
+        "color": "#e74c3c",
+        "highlight": "#ff6b5b"
+      },
+      "dashes": false,
+      "edgeType": "causal",
+      "id": "5c06c8c7-4371-4bd8-b0b6-56d67eb5fb2f"
+    },
+    {
+      "from": "node_1764179559788_bado7",
+      "to": "node_1764179563500_67cdy",
+      "label": "улучшение стабильности",
+      "color": {
+        "color": "#e74c3c",
+        "highlight": "#ff6b5b"
+      },
+      "dashes": false,
+      "edgeType": "causal",
+      "id": "6a3bb7fd-76f8-465f-95f4-a93a48ed7d32"
+    },
+    {
+      "from": "node_1764179559788_bado7",
+      "to": "node_1764179563501_weuk2",
+      "label": "визуализация результатов",
+      "color": {
+        "color": "#e74c3c",
+        "highlight": "#ff6b5b"
+      },
+      "dashes": false,
+      "edgeType": "causal",
+      "id": "18e478eb-c0f6-4d04-a3f6-d1b187c2c957"
+    }
+  ]
+}

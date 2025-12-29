@@ -1,0 +1,370 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    background: #050508;
+}
+
+body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: transparent;
+    /* Deep space black */
+    color: #e0e0e0;
+    height: 100vh;
+    display: flex;
+    overflow: hidden;
+    /* Prevent scrollbars from pseudo-elements */
+    position: relative;
+    /* For absolute positioning of children */
+}
+
+/* Space Background is now handled by Three.js canvas with id="space-background" */
+
+/* Sidebar */
+.sidebar {
+    width: 320px;
+    background: #12121a;
+    border-right: 1px solid #2a2a3a;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
+    z-index: 1000;
+    position: relative;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5);
+    flex-shrink: 0;
+}
+
+h1 {
+    font-size: 1.4rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+label {
+    font-size: 0.85rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+input,
+textarea,
+select {
+    background: #1a1a24;
+    border: 1px solid #2a2a3a;
+    border-radius: 8px;
+    padding: 12px;
+    color: #e0e0e0;
+    font-size: 0.95rem;
+    transition: border-color 0.2s;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 8px;
+    padding: 12px 20px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.2s;
+}
+
+button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+button.secondary {
+    background: #2a2a3a;
+}
+
+button.danger {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+}
+
+.btn-row {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-row button {
+    flex: 1;
+}
+
+/* Legend */
+.legend {
+    background: #1a1a24;
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.legend h3 {
+    font-size: 0.85rem;
+    margin-bottom: 10px;
+    color: #888;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 6px 0;
+    font-size: 0.85rem;
+}
+
+.legend-line {
+    width: 30px;
+    height: 3px;
+    border-radius: 2px;
+}
+
+.legend-line.causal {
+    background: #e74c3c;
+}
+
+.legend-line.multiway {
+    background: #3498db;
+}
+
+.legend-line.branchial {
+    background: #2ecc71;
+    border-style: dashed;
+    height: 0;
+    border-width: 2px;
+}
+
+/* Graph container */
+.graph-container {
+    flex: 1;
+    position: relative;
+    transition: box-shadow 0.3s;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.graph-container.connect-mode-active {
+    box-shadow: inset 0 0 30px rgba(102, 126, 234, 0.3);
+    border: 2px solid #667eea;
+}
+
+#graph,
+#graph-3d {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Status */
+.status {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #1a1a24;
+    border: 1px solid #2a2a3a;
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-size: 0.85rem;
+    display: none;
+}
+
+.status.loading {
+    display: block;
+    border-color: #667eea;
+}
+
+.status.error {
+    display: block;
+    border-color: #e74c3c;
+    color: #e74c3c;
+}
+
+/* Node info panel */
+.node-info {
+    background: #1a1a24;
+    border-radius: 8px;
+    padding: 12px;
+    display: none;
+}
+
+.node-info.active {
+    display: block;
+}
+
+.node-info h3 {
+    color: #667eea;
+    margin-bottom: 8px;
+}
+
+.node-info p {
+    font-size: 0.9rem;
+    color: #aaa;
+    line-height: 1.5;
+}
+
+/* Stats panel */
+.stats-panel {
+    background: linear-gradient(135deg, #667eea22 0%, #764ba222 100%);
+    border: 1px solid #667eea;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 0.9rem;
+    text-align: center;
+    font-weight: 600;
+    color: #e0e0e0;
+}
+
+/* API Key notice */
+.api-notice {
+    background: rgba(231, 76, 60, 0.1);
+    border: 1px solid #e74c3c;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 0.85rem;
+    color: #e74c3c;
+}
+
+/* Custom Modal */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal-content {
+    background: #1a1a24;
+    border: 2px solid #667eea;
+    border-radius: 12px;
+    padding: 24px;
+    min-width: 300px;
+    max-width: 500px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    animation: modalSlideIn 0.2s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-title {
+    color: #e74c3c;
+    font-size: 1.2rem;
+    margin-bottom: 16px;
+    font-weight: 600;
+}
+
+.modal-message {
+    color: #e0e0e0;
+    margin-bottom: 24px;
+    line-height: 1.5;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.modal-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.2s;
+}
+
+.modal-btn.cancel {
+    background: #2a2a3a;
+    color: #e0e0e0;
+}
+
+.modal-btn.cancel:hover {
+    background: #3a3a4a;
+}
+
+.modal-btn.confirm {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: white;
+}
+
+.modal-btn.confirm:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+}
+
+/* Quiz Styles */
+.option-btn {
+    background: #2a2a3a;
+    border: 1px solid #667eea;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.option-btn:hover {
+    background: #3a3a4a;
+}
+
+.option-btn.correct {
+    background: #2ecc71;
+    border-color: #27ae60;
+    color: #fff;
+}
+
+.option-btn.wrong {
+    background: #e74c3c;
+    border-color: #c0392b;
+    color: #fff;
+}

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QA Knowledge Graph</title>
+    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
+    <script src="https://unpkg.com/3d-force-graph"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/millionaire.css">
+    <link rel="stylesheet" href="css/learning-loop.css">
+    <script>
+        window.onerror = function (msg, url, line, col, error) {
+            alert("Error: " + msg + "\nurl: " + url + "\nline: " + line);
+        };
+    </script>
+</head>
+
+<body>
+    <aside class="sidebar">
+        <h1>🧠 QA Knowledge Graph</h1>
+
+        <div class="input-group">
+            <label>🔍 Поиск узла</label>
+            <input type="text" id="searchInput" placeholder="Введите название узла..." autocomplete="off">
+        </div>
+
+        <div class="stats-panel" id="statsPanel">
+            📊 <span id="statsText">0 узлов • 0 связей</span>
+        </div>
+
+        <button id="viewModeBtn" style="background: #2a2a3a; border: 1px solid #667eea;">🔄
+            Переключить на 3D</button>
+
+
+
+        <div class="input-group">
+            <label>🛠️ Технологический стек</label>
+            <select id="techStack">
+                <option value="python">Python (Selenium, pytest, requests)</option>
+                <option value="java">Java (Selenium, JUnit, REST Assured)</option>
+                <option value="javascript">JavaScript (Playwright, Jest, Cypress)</option>
+                <option value="custom">Кастомный стек...</option>
+            </select>
+        </div>
+
+        <div class="input-group" id="customStackGroup" style="display: none;">
+            <label>Укажите свой стек</label>
+            <input type="text" id="customStack" placeholder="Например: Ruby, Capybara, RSpec">
+        </div>
+
+        <div class="input-group">
+            <label>Категория узла</label>
+            <select id="nodeCategory">
+                <option value="Core">🔵 Core (основы)</option>
+                <option value="Tools">🟢 Tools (инструменты)</option>
+                <option value="Patterns">🟡 Patterns (паттерны)</option>
+                <option value="Testing">🟣 Testing (тестирование)</option>
+                <option value="Integration">🟠 Integration (интеграция)</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label>Добавить тему</label>
+            <input type="text" id="topicInput" placeholder="Например: Selenium WebDriver">
+        </div>
+
+        <div class="input-group">
+            <label>Тип связи</label>
+            <select id="edgeType">
+                <option value="causal">🔴 Causal (причинная)</option>
+                <option value="multiway">🔵 Multiway (переход)</option>
+                <option value="branchial">🟢 Branchial (группировка)</option>
+            </select>
+        </div>
+
+        <button id="addTopicAIBtn">✨ Добавить + найти связи (AI)</button>
+
+        <div class="btn-row">
+            <button class="secondary" id="addTopicManualBtn">+ Добавить</button>
+            <button class="secondary" id="connectModeBtn">🔗 Связать</button>
+        </div>
+
+        <div class="btn-row">
+            <button class="secondary" id="exportBtn">💾 Export</button>
+            <button class="secondary" id="importBtn">📂 Import</button>
+        </div>
+
+        <div class="btn-row">
+            <button class="danger" id="deleteBtn">🗑️ Удалить выбранное</button>
+            <button class="danger" id="clearBtn">🗑️ Очистить всё</button>
+        </div>
+
+        <div class="legend">
+            <h3>ТИПЫ СВЯЗЕЙ</h3>
+            <div class="legend-item">
+                <div class="legend-line causal"></div>
+                <span>Causal — причина → следствие</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-line multiway"></div>
+                <span>Multiway — переходы/альтернативы</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-line branchial"></div>
+                <span>Branchial — общий предок/группа</span>
+            </div>
+        </div>
+        <button class="secondary" id="helpBtn" style="margin-top: 10px; width: 100%;">ℹ️ Справка о
+            типах</button>
+
+        <div class="node-info" id="nodeInfo">
+            <h3 id="nodeTitle">—</h3>
+            <p id="nodeDesc">Выберите узел для просмотра информации</p>
+            <button id="startQuizBtn" class="secondary" style="margin-top: 10px; width: 100%;">🎓 Пройти тест</button>
+            <button id="autoLinkBtn" class="secondary" style="margin-top: 10px; width: 100%;">🔗 Найти связи
+                (AI)</button>
+        </div>
+    </aside>
+
+    <main class="graph-container">
+        <div id="graph"></div>
+        <div id="graph-3d" style="display: none;"></div>
+
+        <!-- Millionaire Game Container -->
+        <div id="millionaire-game-container" class="modal-overlay" style="display: none;">
+            <div class="millionaire-layout">
+                <div class="millionaire-sidebar">
+                    <div class="ladder-title">💰 PRIZE LADDER</div>
+                    <div id="money-ladder" class="money-ladder">
+                        <!-- Ladder items generated by JS -->
+                    </div>
+                </div>
+                <div class="millionaire-main">
+                    <div class="game-header">
+                        <div class="game-logo">🧠 WHO WANTS TO BE A QA ENGINEER?</div>
+                        <button class="close-game-btn"
+                            onclick="document.getElementById('millionaire-game-container').style.display='none'">✕</button>
+                    </div>
+
+                    <div id="millionaire-content" class="game-content">
+                        <div class="lifelines-container">
+                            <button id="lifeline-5050" class="lifeline-btn" title="50:50">
+                                <span class="lifeline-icon">[50:50]</span>
+                            </button>
+                            <button id="lifeline-comlink" class="lifeline-btn" title="Comlink">
+                                <span class="lifeline-icon">📱 COMLINK</span>
+                            </button>
+                            <button id="lifeline-survey" class="lifeline-btn" title="Survey">
+                                <span class="lifeline-icon">👥 SURVEY</span>
+                            </button>
+                        </div>
+
+                        <div class="difficulty-meter">
+                            <span class="difficulty-label">DIFFICULTY:</span>
+                            <div class="difficulty-bars" id="difficulty-bars">
+                                <!-- Bars generated by JS -->
+                            </div>
+                        </div>
+
+                        <div class="game-status-bar">
+                            <div id="timer-container" class="timer-container">
+                                <div id="timer-bar" class="timer-bar"></div>
+                                <span id="timer-text">30</span>
+                            </div>
+                            <div id="second-chance-badge" class="second-chance-badge" style="display: none;">
+                                🛡️ Second Chance Active
+                            </div>
+                            <button id="sound-toggle-btn" class="sound-toggle-btn" title="Toggle Sound">
+                                <span id="sound-icon">🔊</span>
+                            </button>
+                        </div>
+
+                        <div class="question-box">
+                            <div id="millionaire-question">Loading question...</div>
+                        </div>
+
+                        <div id="millionaire-answers" class="answers-grid">
+                            <!-- Answers generated by JS -->
+                        </div>
+
+                        <div id="lifeline-result-area" class="lifeline-result-area" style="display: none;">
+                            <!-- Dynamic content for Comlink/Survey results -->
+                        </div>
+
+                        <div id="explanation-area" class="explanation-box" style="display: none;">
+                            <div class="explanation-title">💡 Explanation</div>
+                            <div id="explanation-text"></div>
+                            <button id="next-question-btn" class="next-btn">Next Question ➡️</button>
+                        </div>
+                    </div>
+
+                    <div id="millionaire-loader" class="game-loader">
+                        <div class="spinner"></div>
+                        <span>Asking the AI...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="status" id="status">⏳ Загрузка...</div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal-content">
+            <div class="modal-title">⚠️ Подтверждение удаления</div>
+            <div class="modal-message" id="modalMessage"></div>
+            <div class="modal-buttons">
+                <button class="modal-btn cancel" id="cancelDeleteBtn">Отмена</button>
+                <button class="modal-btn confirm" id="confirmDeleteBtn">Удалить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div class="modal-overlay" id="helpModal">
+        <div class="modal-content">
+            <div class="modal-title">ℹ️ Справка</div>
+            <div class="modal-message" style="text-align: left;">
+                <h4 style="color: #667eea; margin-bottom: 10px;">🔗 Типы связей</h4>
+                <p><strong>🔴 Causal (Причинная)</strong><br>
+                    Логическая связь "Причина → Следствие". Изучение одной темы необходимо для понимания другой.</p>
+                <br>
+                <p><strong>🔵 Multiway (Переход)</strong><br>
+                    Ассоциативная связь. Темы связаны контекстом, но не зависят жестко.</p>
+                <br>
+                <p><strong>🟢 Branchial (Группировка)</strong><br>
+                    Иерархическая связь. Объединяет узлы в категорию (например, "Инструменты" -> "Selenium").</p>
+
+                <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
+
+                <h4 style="color: #667eea; margin-bottom: 10px;">🔄 Learning Loop</h4>
+                <p>Система адаптируется под ваши знания:</p>
+                <ul style="padding-left: 20px; margin-top: 8px; color: #aaa; font-size: 0.9rem; line-height: 1.6;">
+                    <li><strong>🎯 Адаптивность:</strong> Вопросы по слабым темам появляются чаще.</li>
+                    <li><strong>➕ Рост графа:</strong> Добавляйте новые концепты из ошибок прямо в граф.</li>
+                    <li><strong>📊 Статистика:</strong> Отслеживайте прогресс в панели статистики.</li>
+                </ul>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn confirm" id="closeHelpBtn">Понятно</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+
+</html>

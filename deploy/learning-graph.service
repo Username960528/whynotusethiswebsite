@@ -1,0 +1,15 @@
+[Unit]
+Description=Learning Graph Node.js Backend
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/var/www/graph.whynotusethis.website
+ExecStart=/usr/bin/node server.js
+Restart=on-failure
+Environment=PORT=3002
+EnvironmentFile=/var/www/graph.whynotusethis.website/.env
+
+[Install]
+WantedBy=multi-user.target
