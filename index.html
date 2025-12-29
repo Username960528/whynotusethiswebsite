@@ -521,22 +521,36 @@
 
                <!-- Form states -->
                <div id="modal-form-state">
-                    <!-- Content Type Tabs -->
-                    <div class="flex gap-2 mb-6">
-                         <button class="tab-btn active" data-type="text">📝 Текст</button>
-                         <button class="tab-btn" data-type="link">🔗 Ссылка</button>
-                         <button class="tab-btn" data-type="file">📁 Файл</button>
-                    </div>
-
-                    <!-- Text/Link Input -->
+                    <!-- Text Input -->
                     <div id="text-input-section" class="mb-6">
-                         <label class="block text-sm text-gray-400 mb-2">Ваш контент</label>
+                         <label class="block text-sm text-gray-400 mb-2">Текст или ссылка</label>
                          <textarea id="content-input" rows="4"
                               class="w-full bg-gray-800/50 border border-gray-700 rounded-xl p-4 text-white placeholder-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-colors resize-none"
-                              placeholder="Введите текст или ссылку..."></textarea>
+                              placeholder="Введите текст или вставьте ссылку..."></textarea>
+                         <p class="text-xs text-gray-500 mt-2">Ссылки будут определены автоматически</p>
                     </div>
 
-                    <!-- File Upload Zone -->
+                    <!-- File Upload Toggle -->
+                    <div class="mb-6">
+                         <div class="flex items-center justify-between p-4 bg-gray-800/30 rounded-xl cursor-pointer"
+                              id="file-toggle">
+                              <div class="flex items-center gap-3">
+                                   <span class="text-2xl">📁</span>
+                                   <div>
+                                        <p class="text-white font-medium">Прикрепить изображение</p>
+                                        <p class="text-sm text-gray-500">PNG, JPG, GIF, WEBP до 10MB</p>
+                                   </div>
+                              </div>
+                              <div id="file-toggle-icon" class="text-gray-400 transition-transform">
+                                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                             d="M19 9l-7 7-7-7" />
+                                   </svg>
+                              </div>
+                         </div>
+                    </div>
+
+                    <!-- File Upload Zone (hidden by default) -->
                     <div id="file-input-section" class="mb-6 hidden">
                          <label class="block text-sm text-gray-400 mb-2">Загрузите изображение</label>
                          <div id="drop-zone" class="drop-zone">
@@ -997,12 +1011,12 @@
                const modal = document.getElementById('content-modal');
                const openBtn = document.getElementById('create-content-card');
                const closeBtn = document.getElementById('close-modal-btn');
-               const typeTabs = document.querySelectorAll('.tab-btn[data-type]');
                const timerBtns = document.querySelectorAll('.timer-btn');
                const autoDeleteToggle = document.getElementById('auto-delete-toggle');
                const timerOptions = document.getElementById('timer-options');
-               const textInputSection = document.getElementById('text-input-section');
                const fileInputSection = document.getElementById('file-input-section');
+               const fileToggle = document.getElementById('file-toggle');
+               const fileToggleIcon = document.getElementById('file-toggle-icon');
                const contentInput = document.getElementById('content-input');
                const fileInput = document.getElementById('file-input');
                const dropZone = document.getElementById('drop-zone');
@@ -1021,12 +1035,18 @@
                const ipRestrictionToggle = document.getElementById('ip-restriction-toggle');
 
                // State
-               let currentType = 'text';
                let currentTimer = 1;
                let autoDelete = true;
                let burnAfterRead = false;
                let ipRestriction = false;
                let selectedFile = null;
+               let fileUploadVisible = false;
+
+               // Helper: detect if content is a URL
+               function isURL(text) {
+                    const urlPattern = /^(https?:\/\/|www\.)[^\s]+$/i;
+                    return urlPattern.test(text.trim());
+               }
 
                // Modal open/close
                openBtn.addEventListener('click', () => {
@@ -1051,24 +1071,11 @@
                     }
                });
 
-               // Type tabs
-               typeTabs.forEach(tab => {
-                    tab.addEventListener('click', () => {
-                         typeTabs.forEach(t => t.classList.remove('active'));
-                         tab.classList.add('active');
-                         currentType = tab.dataset.type;
-
-                         if (currentType === 'file') {
-                              textInputSection.classList.add('hidden');
-                              fileInputSection.classList.remove('hidden');
-                         } else {
-                              textInputSection.classList.remove('hidden');
-                              fileInputSection.classList.add('hidden');
-                              contentInput.placeholder = currentType === 'link'
-                                   ? 'https://example.com'
-                                   : 'Введите ваш текст...';
-                         }
-                    });
+               // File upload toggle
+               fileToggle.addEventListener('click', () => {
+                    fileUploadVisible = !fileUploadVisible;
+                    fileInputSection.classList.toggle('hidden', !fileUploadVisible);
+                    fileToggleIcon.style.transform = fileUploadVisible ? 'rotate(180deg)' : '';
                });
 
                // Timer buttons
@@ -1168,32 +1175,34 @@
                     showState('form');
                     contentInput.value = '';
                     clearFile();
-                    typeTabs.forEach(t => t.classList.remove('active'));
-                    typeTabs[0].classList.add('active');
-                    currentType = 'text';
-                    textInputSection.classList.remove('hidden');
+                    fileUploadVisible = false;
                     fileInputSection.classList.add('hidden');
+                    fileToggleIcon.style.transform = '';
                }
 
                // Create content
                createBtn.addEventListener('click', async () => {
                     const content = contentInput.value.trim();
 
-                    if (currentType !== 'file' && !content) {
-                         alert('Пожалуйста, введите контент');
-                         return;
-                    }
-
-                    if (currentType === 'file' && !selectedFile) {
-                         alert('Пожалуйста, выберите файл');
+                    // Validate: need either text or file
+                    if (!content && !selectedFile) {
+                         alert('Пожалуйста, введите текст или загрузите файл');
                          return;
                     }
 
                     showState('loading');
 
                     try {
+                         // Auto-detect content type
+                         let contentType = 'text';
+                         if (selectedFile && !content) {
+                              contentType = 'file';
+                         } else if (isURL(content)) {
+                              contentType = 'link';
+                         }
+
                          const formData = new FormData();
-                         formData.append('type', currentType);
+                         formData.append('type', contentType);
                          formData.append('content', content);
                          formData.append('autoDelete', autoDelete);
                          formData.append('deleteAfterMinutes', currentTimer);
