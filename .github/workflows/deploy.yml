@@ -13,13 +13,53 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Deploy files to server
+      - name: Deploy frontend files
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "*.html,css/,js/,backend/*.js,backend/*.json,deploy/"
+          source: "index.html,view.html"
+          target: "/var/www/whynotusethis.website/"
+          overwrite: true
+
+      - name: Deploy CSS folder
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "css"
+          target: "/var/www/whynotusethis.website/"
+          overwrite: true
+
+      - name: Deploy JS folder
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "js"
+          target: "/var/www/whynotusethis.website/"
+          overwrite: true
+
+      - name: Deploy backend files
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "backend/server.js,backend/database.js,backend/package.json"
+          target: "/var/www/whynotusethis.website/"
+          overwrite: true
+
+      - name: Deploy config files
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "deploy"
           target: "/var/www/whynotusethis.website/"
           overwrite: true
 
