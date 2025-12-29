@@ -19,7 +19,7 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "index.html,view.html,css/,js/,backend/server.js,backend/database.js,backend/package.json,deploy/"
+          source: "*.html,css/,js/,backend/*.js,backend/*.json,deploy/"
           target: "/var/www/whynotusethis.website/"
           overwrite: true
 
