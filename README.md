@@ -6,18 +6,23 @@
 
 ```
 whynotusethiswebsite/
-├── index.html          # Главная страница с 3D-фоном и модальным окном
-├── view.html           # Страница просмотра временного контента
-├── backend/            # Node.js API сервер
-│   ├── server.js       # Express сервер с API endpoints
-│   ├── database.js     # SQLite база данных
-│   ├── package.json    # Зависимости
-│   ├── data/           # SQLite файлы (создаётся автоматически)
-│   └── uploads/        # Загруженные файлы (создаётся автоматически)
-└── deploy/             # Конфигурация деплоя
-    ├── nginx.conf      # Nginx конфиг (за Xray на порту 8080)
+├── index.html              # Главная страница (только HTML)
+├── view.html               # Страница просмотра временного контента
+├── css/
+│   └── styles.css          # Все стили
+├── js/
+│   ├── app.js              # 3D фон, GSAP, glitch-эффекты, генератор идей
+│   └── content-modal.js    # Логика модального окна временного контента
+├── backend/                # Node.js API сервер
+│   ├── server.js           # Express сервер с API endpoints
+│   ├── database.js         # SQLite база данных
+│   ├── package.json        # Зависимости
+│   ├── data/               # SQLite файлы (создаётся автоматически)
+│   └── uploads/            # Загруженные файлы (создаётся автоматически)
+└── deploy/                 # Конфигурация деплоя
+    ├── nginx.conf          # Nginx конфиг (за Xray на порту 8080)
     ├── whynotusethis-backend.service  # Systemd сервис
-    └── deploy.sh       # Скрипт развёртывания
+    └── deploy.sh           # Скрипт развёртывания
 ```
 
 ## 🚀 Основные функции
