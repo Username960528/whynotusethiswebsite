@@ -77,7 +77,7 @@ setInterval(cleanupExpiredContent, 30000);
 // Create new content
 app.post('/api/content', upload.single('file'), (req, res) => {
      try {
-          const { type, content, autoDelete, deleteAfterMinutes } = req.body;
+          const { type, content, autoDelete, deleteAfterMinutes, burnAfterRead, ipRestriction } = req.body;
           const uuid = uuidv4();
 
           let filePath = null;
@@ -89,8 +89,8 @@ app.post('/api/content', upload.single('file'), (req, res) => {
           }
 
           const stmt = db.prepare(`
-            INSERT INTO contents (uuid, type, content, file_path, file_name, auto_delete, delete_after_minutes)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO contents (uuid, type, content, file_path, file_name, auto_delete, delete_after_minutes, burn_after_read, ip_restriction)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         `);
 
           stmt.run(
@@ -100,7 +100,9 @@ app.post('/api/content', upload.single('file'), (req, res) => {
                filePath,
                fileName,
                autoDelete === 'true' || autoDelete === true ? 1 : 0,
-               parseInt(deleteAfterMinutes) || 1
+               parseInt(deleteAfterMinutes) || 1,
+               burnAfterRead === 'true' || burnAfterRead === true ? 1 : 0,
+               ipRestriction === 'true' || ipRestriction === true ? 1 : 0
           );
 
           res.json({
@@ -120,13 +122,33 @@ app.get('/api/content/:uuid', (req, res) => {
           const { uuid } = req.params;
           const now = Math.floor(Date.now() / 1000);
 
+          // Get client IP (from X-Forwarded-For or direct connection)
+          const clientIP = req.headers['x-forwarded-for']?.split(',')[0]?.trim()
+               || req.headers['x-real-ip']
+               || req.socket.remoteAddress
+               || 'unknown';
+
           const item = db.prepare('SELECT * FROM contents WHERE uuid = ? AND deleted = 0').get(uuid);
 
           if (!item) {
-               return res.status(404).json({ success: false, error: 'Content not found or has been deleted' });
+               return res.status(404).json({ success: false, error: 'Контент не найден или был удалён' });
           }
 
-          // Check if already expired
+          // Check IP restriction
+          if (item.ip_restriction) {
+               const existingView = db.prepare(
+                    'SELECT * FROM content_views WHERE content_id = ? AND ip_address = ?'
+               ).get(item.id, clientIP);
+
+               if (existingView) {
+                    return res.status(403).json({
+                         success: false,
+                         error: 'Этот контент уже был просмотрен с вашего IP-адреса'
+                    });
+               }
+          }
+
+          // Check if already expired (for auto_delete with timer)
           if (item.auto_delete && item.first_viewed_at) {
                const expiresAt = item.first_viewed_at + (item.delete_after_minutes * 60);
                if (now > expiresAt) {
@@ -135,8 +157,15 @@ app.get('/api/content/:uuid', (req, res) => {
                     if (item.file_path && fs.existsSync(item.file_path)) {
                          fs.unlinkSync(item.file_path);
                     }
-                    return res.status(404).json({ success: false, error: 'Content has expired' });
+                    return res.status(404).json({ success: false, error: 'Срок действия контента истёк' });
                }
+          }
+
+          // Record IP view (for IP restriction tracking)
+          if (item.ip_restriction) {
+               try {
+                    db.prepare('INSERT INTO content_views (content_id, ip_address) VALUES (?, ?)').run(item.id, clientIP);
+               } catch (e) { /* ignore duplicate */ }
           }
 
           // If first view with auto_delete, record the time
@@ -152,6 +181,9 @@ app.get('/api/content/:uuid', (req, res) => {
                remainingSeconds = Math.max(0, expiresAt - now);
           }
 
+          // Check for burn after read - delete AFTER sending response
+          const shouldBurn = item.burn_after_read === 1;
+
           res.json({
                success: true,
                content: {
@@ -160,10 +192,24 @@ app.get('/api/content/:uuid', (req, res) => {
                     fileName: item.file_name,
                     hasFile: !!item.file_path,
                     autoDelete: item.auto_delete === 1,
+                    burnAfterRead: shouldBurn,
+                    ipRestriction: item.ip_restriction === 1,
                     remainingSeconds,
                     createdAt: item.created_at
                }
           });
+
+          // Burn after read - delete content after sending response
+          if (shouldBurn) {
+               setTimeout(() => {
+                    if (item.file_path && fs.existsSync(item.file_path)) {
+                         fs.unlinkSync(item.file_path);
+                    }
+                    db.prepare('UPDATE contents SET deleted = 1 WHERE id = ?').run(item.id);
+                    console.log(`Burned content after read: ${uuid}`);
+               }, 100);
+          }
+
      } catch (error) {
           console.error('Error getting content:', error);
           res.status(500).json({ success: false, error: error.message });

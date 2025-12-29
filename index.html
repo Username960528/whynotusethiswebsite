@@ -586,6 +586,31 @@
                          </div>
                     </div>
 
+                    <!-- Security Options -->
+                    <div class="mb-6 space-y-3">
+                         <!-- Burn After Read -->
+                         <div class="p-4 bg-red-900/20 border border-red-800/30 rounded-xl">
+                              <div class="flex items-center justify-between">
+                                   <div>
+                                        <p class="text-white font-medium">🔥 Удалить после прочтения</p>
+                                        <p class="text-sm text-gray-500">Контент исчезнет сразу после просмотра</p>
+                                   </div>
+                                   <div id="burn-after-read-toggle" class="toggle-switch"></div>
+                              </div>
+                         </div>
+
+                         <!-- IP Restriction -->
+                         <div class="p-4 bg-yellow-900/20 border border-yellow-800/30 rounded-xl">
+                              <div class="flex items-center justify-between">
+                                   <div>
+                                        <p class="text-white font-medium">🔒 Один просмотр с IP</p>
+                                        <p class="text-sm text-gray-500">Каждый IP может открыть только один раз</p>
+                                   </div>
+                                   <div id="ip-restriction-toggle" class="toggle-switch"></div>
+                              </div>
+                         </div>
+                    </div>
+
                     <!-- Submit Button -->
                     <button id="create-content-btn"
                          class="w-full py-4 bg-gradient-to-r from-indigo-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 rounded-xl font-bold text-white transition-all transform hover:scale-[1.02]">
@@ -992,11 +1017,15 @@
                const createAnotherBtn = document.getElementById('create-another-btn');
                const retryBtn = document.getElementById('retry-btn');
                const errorMessage = document.getElementById('error-message');
+               const burnAfterReadToggle = document.getElementById('burn-after-read-toggle');
+               const ipRestrictionToggle = document.getElementById('ip-restriction-toggle');
 
                // State
                let currentType = 'text';
                let currentTimer = 1;
                let autoDelete = true;
+               let burnAfterRead = false;
+               let ipRestriction = false;
                let selectedFile = null;
 
                // Modal open/close
@@ -1056,6 +1085,18 @@
                     autoDelete = !autoDelete;
                     autoDeleteToggle.classList.toggle('active', autoDelete);
                     timerOptions.style.display = autoDelete ? 'grid' : 'none';
+               });
+
+               // Burn after read toggle
+               burnAfterReadToggle.addEventListener('click', () => {
+                    burnAfterRead = !burnAfterRead;
+                    burnAfterReadToggle.classList.toggle('active', burnAfterRead);
+               });
+
+               // IP restriction toggle
+               ipRestrictionToggle.addEventListener('click', () => {
+                    ipRestriction = !ipRestriction;
+                    ipRestrictionToggle.classList.toggle('active', ipRestriction);
                });
 
                // File drag & drop
@@ -1156,6 +1197,8 @@
                          formData.append('content', content);
                          formData.append('autoDelete', autoDelete);
                          formData.append('deleteAfterMinutes', currentTimer);
+                         formData.append('burnAfterRead', burnAfterRead);
+                         formData.append('ipRestriction', ipRestriction);
 
                          if (selectedFile) {
                               formData.append('file', selectedFile);

@@ -238,6 +238,7 @@
           const API_BASE = '/api';
           let timerInterval = null;
           let totalSeconds = 0;
+          let isBurnAfterRead = false;
 
           // Get UUID from URL
           function getUUID() {
@@ -279,8 +280,10 @@
                const offset = 283 * (1 - progress);
                circle.style.strokeDashoffset = offset;
 
+               // Last 10 seconds - change color
                if (remaining <= 10) {
                     display.classList.add('text-red-500');
+                    display.style.webkitTextFillColor = '#ef4444';
                }
           }
 
@@ -322,12 +325,22 @@
                document.getElementById('loading-state').classList.add('hidden');
                document.getElementById('content-state').classList.remove('hidden');
 
-               const { type, content, fileName, hasFile, autoDelete, remainingSeconds, createdAt } = data;
+               const { type, content, fileName, hasFile, autoDelete, burnAfterRead, ipRestriction, remainingSeconds, createdAt } = data;
+
+               isBurnAfterRead = burnAfterRead;
 
                // Type badge
                const typeBadge = document.getElementById('content-type-badge');
                const typeLabels = { text: 'Текст', link: 'Ссылка', file: 'Файл' };
-               typeBadge.textContent = typeLabels[type] || type;
+               let badgeText = typeLabels[type] || type;
+
+               // Add burn after read indicator
+               if (burnAfterRead) {
+                    badgeText = '🔥 ' + badgeText;
+                    typeBadge.classList.add('bg-red-600/20', 'text-red-400');
+                    typeBadge.classList.remove('bg-indigo-600/20', 'text-indigo-400');
+               }
+               typeBadge.textContent = badgeText;
 
                // Show appropriate content type
                if (type === 'text') {
@@ -365,6 +378,17 @@
                if (createdAt) {
                     const date = new Date(createdAt * 1000);
                     document.getElementById('created-at').textContent = `Создано: ${date.toLocaleString('ru-RU')}`;
+               }
+
+               // Burn after read warning
+               if (burnAfterRead) {
+                    const warningDiv = document.createElement('div');
+                    warningDiv.className = 'mb-6 p-4 bg-red-900/30 border border-red-600/30 rounded-2xl text-center';
+                    warningDiv.innerHTML = `
+                    <p class="text-red-400 font-medium">🔥 Этот контент уже удалён</p>
+                    <p class="text-sm text-gray-400 mt-1">Вы видите его в последний раз. После закрытия страницы он исчезнет навсегда.</p>
+                `;
+                    document.getElementById('content-state').insertBefore(warningDiv, document.getElementById('content-state').firstChild);
                }
 
                // Start timer if auto-delete is enabled
