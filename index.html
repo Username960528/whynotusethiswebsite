@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <title>whynotusethis.website</title>
+
+     <!-- Tailwind CSS for rapid styling -->
+     <script src="https://cdn.tailwindcss.com"></script>
+
+     <!-- Google Fonts: Inter -->
+     <link rel="preconnect" href="https://fonts.googleapis.com">
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+     <!-- three.js core library -->
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+     <!-- three.js post-processing effects - FIXED DEPENDENCIES -->
+     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/Pass.js"></script>
+     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/DigitalGlitch.js"></script>
+     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/GlitchPass.js"></script>
+
+
+     <style>
+          /* Custom styles for the futuristic look and feel */
+          body {
+               font-family: 'Inter', sans-serif;
+               background-color: #0a0a0a;
+               color: #e0e0e0;
+               overflow-x: hidden;
+          }
+
+          /* The canvas for our 3D scene will be fixed in the background */
+          #bg-canvas {
+               position: fixed;
+               top: 0;
+               left: 0;
+               width: 100%;
+               height: 100%;
+               z-index: -1;
+               opacity: 0.6;
+               /* Slightly increased opacity for better star visibility */
+               transition: opacity 0.5s ease-out;
+               /* Add transition for smooth opacity change */
+          }
+
+          /* Glassmorphism effect for cards and sections */
+          .glass-effect {
+               background: rgba(16, 16, 16, 0.6);
+               backdrop-filter: blur(10px);
+               -webkit-backdrop-filter: blur(10px);
+               border: 1px solid rgba(255, 255, 255, 0.1);
+          }
+
+          /* Custom gradient text */
+          .gradient-text {
+               background: linear-gradient(90deg, #4f46e5, #db2777);
+               -webkit-background-clip: text;
+               -webkit-text-fill-color: transparent;
+          }
+
+          /* Scroll-reveal animation */
+          .reveal {
+               opacity: 0;
+               transform: translateY(50px);
+               transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+          }
+
+          .reveal.visible {
+               opacity: 1;
+               transform: translateY(0);
+          }
+
+          /* Project card hover effect */
+          .project-card {
+               transition: transform 0.3s ease, box-shadow 0.3s ease;
+          }
+
+          .project-card:hover {
+               transform: translateY(-10px) scale(1.03);
+               box-shadow: 0 20px 30px rgba(0, 0, 0, 0.4), 0 0 40px rgba(79, 70, 229, 0.5);
+          }
+
+          /* Typing cursor effect */
+          .typewriter h1 {
+               overflow: hidden;
+               border-right: .15em solid #4f46e5;
+               white-space: nowrap;
+               margin: 0 auto;
+               letter-spacing: .1em;
+               animation:
+                    typing 3.5s steps(30, end) forwards,
+                    blink-caret .75s step-end infinite;
+          }
+
+          /* The question mark animation is now triggered by a single class and controlled by a CSS variable */
+          .typewriter.glitch-active h1::after {
+               content: '';
+               display: inline-block;
+               /* --glitch-iterations is set by JS */
+               animation: glitch-and-fade 2.5s linear 0s var(--glitch-iterations, 1);
+          }
+
+          @keyframes typing {
+               from {
+                    width: 0
+               }
+
+               to {
+                    width: 100%
+               }
+          }
+
+          @keyframes blink-caret {
+
+               from,
+               to {
+                    border-color: transparent
+               }
+
+               50% {
+                    border-color: #4f46e5;
+               }
+          }
+
+          /* Keyframes for the glitching question mark */
+          @keyframes glitch-and-fade {
+
+               /* Appear and hold */
+               0% {
+                    content: '';
+               }
+
+               10% {
+                    content: '?';
+                    transform: none;
+                    color: #e0e0e0;
+               }
+
+               50% {
+                    content: '?';
+                    transform: none;
+                    color: #e0e0e0;
+               }
+
+               /* Glitch sequence during erase */
+               51% {
+                    content: '▓';
+                    transform: translate(-8px, 2px) skewX(-30deg);
+                    color: #db2777;
+               }
+
+               53% {
+                    content: '?';
+                    transform: translate(4px, -2px) skewX(20deg);
+                    color: #e0e0e0;
+               }
+
+               55% {
+                    content: '▒';
+                    transform: translate(6px, 3px) skewX(10deg);
+                    color: #4f46e5;
+               }
+
+               57% {
+                    content: '?';
+                    transform: translate(-1px, -4px) skewX(-15deg);
+                    color: #e0e0e0;
+               }
+
+               /* Disappear and pause */
+               60% {
+                    content: '';
+               }
+
+               100% {
+                    content: '';
+               }
+          }
+
+          /* Simple spinner for loading state */
+          .spinner {
+               border: 4px solid rgba(255, 255, 255, 0.2);
+               border-left-color: #4f46e5;
+               border-radius: 50%;
+               width: 24px;
+               height: 24px;
+               animation: spin 1s linear infinite;
+          }
+
+          @keyframes spin {
+               to {
+                    transform: rotate(360deg);
+               }
+          }
+     </style>
+</head>
+
+<body class="antialiased">
+
+     <!-- 3D Background Canvas -->
+     <canvas id="bg-canvas"></canvas>
+
+     <div class="relative min-h-screen flex flex-col items-center justify-center p-4 overflow-hidden">
+          <!-- Hero Section -->
+          <header class="text-center z-10">
+               <div class="typewriter">
+                    <h1 class="text-4xl md:text-6xl lg:text-7xl font-black tracking-tighter mb-4">whynotusethis.website
+                    </h1>
+               </div>
+               <p class="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto">
+                    Коллекция цифровых экспериментов и идей, воплощенных в коде.
+               </p>
+          </header>
+          <div class="absolute bottom-8 text-gray-500 text-sm animate-pulse z-10">
+               Прокрутите вниз
+          </div>
+     </div>
+
+     <main class="container mx-auto px-6 py-20 md:py-32 space-y-24 md:space-y-32 z-10 relative">
+
+          <!-- About Section -->
+          <section class="reveal max-w-4xl mx-auto text-center">
+               <h2 class="text-3xl md:text-4xl font-bold mb-6">О Проекте</h2>
+               <div class="glass-effect rounded-2xl p-8">
+                    <p class="text-lg text-gray-300 leading-relaxed">
+                         Этот сайт — не просто портфолио. Это игровая площадка для тестирования смелых идей, где
+                         технологии встречаются с искусством. Каждая ссылка ниже — это дверь в отдельный мир, созданный
+                         с целью исследовать границы возможного в вебе. Почему бы не использовать это?
+                    </p>
+               </div>
+          </section>
+
+          <!-- Projects Section -->
+          <section class="reveal">
+               <h2 class="text-3xl md:text-4xl font-bold text-center mb-12">Проекты</h2>
+               <div id="projects-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+                    <!-- Project Card 1 -->
+                    <a href="#" class="project-card block glass-effect rounded-2xl overflow-hidden group">
+                         <div class="p-6">
+                              <h3 class="text-2xl font-bold mb-2 gradient-text">Проект "Орион"</h3>
+                              <p class="text-gray-400">Интерактивная система визуализации галактических данных в
+                                   реальном времени.</p>
+                         </div>
+                    </a>
+
+                    <!-- Project Card 2 -->
+                    <a href="#" class="project-card block glass-effect rounded-2xl overflow-hidden group">
+                         <div class="p-6">
+                              <h3 class="text-2xl font-bold mb-2 gradient-text">Проект "Нова"</h3>
+                              <p class="text-gray-400">Генератор нейросетевого искусства, создающий уникальные
+                                   визуальные образы.</p>
+                         </div>
+                    </a>
+
+                    <!-- Project Card 3 -->
+                    <a href="#" class="project-card block glass-effect rounded-2xl overflow-hidden group">
+                         <div class="p-6">
+                              <h3 class="text-2xl font-bold mb-2 gradient-text">Проект "Лебедь"</h3>
+                              <p class="text-gray-400">Децентрализованная платформа для совместного написания историй.
+                              </p>
+                         </div>
+                    </a>
+
+                    <!-- Project Card 4 -->
+                    <a href="#" class="project-card block glass-effect rounded-2xl overflow-hidden group">
+                         <div class="p-6">
+                              <h3 class="text-2xl font-bold mb-2 gradient-text">Проект "Вега"</h3>
+                              <p class="text-gray-400">Браузерная игра в стиле ретро-аркад с процедурной генерацией
+                                   уровней.</p>
+                         </div>
+                    </a>
+
+                    <!-- Project Card 5 -->
+                    <a href="#" class="project-card block glass-effect rounded-2xl overflow-hidden group">
+                         <div class="p-6">
+                              <h3 class="text-2xl font-bold mb-2 gradient-text">Проект "Квазар"</h3>
+                              <p class="text-gray-400">Музыкальный секвенсор на основе алгоритмов машинного обучения.
+                              </p>
+                         </div>
+                    </a>
+
+                    <!-- Gemini-powered Idea Generator Card -->
+                    <div id="generate-idea-card"
+                         class="project-card flex items-center justify-center glass-effect rounded-2xl border-2 border-dashed border-gray-700 cursor-pointer hover:border-indigo-400 hover:bg-gray-900/50">
+                         <div id="generate-idea-content" class="text-center p-6">
+                              <p class="text-2xl font-bold mb-2">✨</p>
+                              <p class="text-gray-400 font-semibold">Сгенерировать идею</p>
+                         </div>
+                         <div id="generate-idea-loader" class="hidden">
+                              <div class="spinner"></div>
+                         </div>
+                    </div>
+
+               </div>
+          </section>
+
+          <!-- Personal Events Section -->
+          <section class="reveal">
+               <h2 class="text-3xl md:text-4xl font-bold text-center mb-12">Личные события</h2>
+               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+                    <!-- Event Card 1 -->
+                    <a href="https://username960528.github.io/oka-bicycle/" target="_blank" rel="noopener noreferrer"
+                         class="project-card block glass-effect rounded-2xl overflow-hidden group">
+                         <div class="p-6">
+                              <h3 class="text-2xl font-bold mb-2 gradient-text">Покатушки по Оке</h3>
+                              <p class="text-gray-400">Отчет о велопоездке вдоль реки Ока. Маршрут, фото и впечатления.
+                              </p>
+                         </div>
+                    </a>
+
+                    <!-- Add more event cards here -->
+                    <div
+                         class="project-card flex items-center justify-center glass-effect rounded-2xl border-2 border-dashed border-gray-700">
+                         <p class="text-gray-500">Скоро здесь будет новое событие...</p>
+                    </div>
+
+               </div>
+          </section>
+
+          <!-- Contact Section -->
+          <section class="reveal max-w-4xl mx-auto text-center">
+               <h2 class="text-3xl md:text-4xl font-bold mb-6">Связаться</h2>
+               <div class="glass-effect rounded-2xl p-8 flex items-center justify-center space-x-6">
+                    <a href="#" class="text-gray-400 hover:text-indigo-400 transition-colors" title="GitHub">
+                         <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                              <path fill-rule="evenodd"
+                                   d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.168 6.839 9.49.5.092.682-.217.682-.482 0-.237-.009-.868-.014-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.031-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.378.203 2.398.1 2.65.64.7 1.028 1.595 1.028 2.688 0 3.848-2.338 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.001 10.001 0 0022 12c0-5.523-4.477-10-10-10z"
+                                   clip-rule="evenodd" />
+                         </svg>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-indigo-400 transition-colors" title="Telegram">
+                         <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                              <path
+                                   d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.17.9-.494 1.2-.822 1.23-.696.065-1.225-.46-1.9-1.088-1.053-.968-1.653-1.555-2.67-2.52-.843-.797-.293-1.23.166-1.932.118-.174 2.22-2.033 2.22-2.033s.347-.333-.102-.034c-.482.32-1.683 1.123-2.374 1.595-.69.472-1.264.686-1.69.542-.49-.163-1.422-.493-2.123-.746-1.044-.377-1.88-.566-1.718-1.161.133-.474.916-2.17 1.37-3.648.59-1.93.978-2.51.13-2.615-.847-.104-1.83.655-1.83.655s-.682-.45.234-.733c.85-.26 1.917-.64 2.58-.83.662-.19 1.24-.21 1.555-.21.32-.002.633.014.882.094.26.084.394.2.438.246.043.046.063.1.058.155-.007.073-.015.15-.024.225-.05.468-.283 1.58-.482 2.54-.15.717-.3 1.545-.3 1.545s-.012.423.37.492c.383.07.87-.273.87-.273s2.06-1.86 2.532-2.325c.472-.467.783-.77.962-.77z">
+                              </path>
+                         </svg>
+                    </a>
+                    <a href="mailto:example@whynotusethis.website"
+                         class="text-gray-400 hover:text-indigo-400 transition-colors" title="Email">
+                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                              xmlns="http://www.w3.org/2000/svg">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                   d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
+                              </path>
+                         </svg>
+                    </a>
+               </div>
+          </section>
+
+     </main>
+
+     <footer class="text-center py-8 text-gray-600 text-sm">
+          <p>&copy; 2024 whynotusethis.website. Все права защищены.</p>
+     </footer>
+
+     <script>
+          // --- 3D Scene Setup ---
+          let scene, camera, renderer, shape, composer, glitchPass, starfield;
+
+          function init3D() {
+               const canvas = document.getElementById('bg-canvas');
+               scene = new THREE.Scene();
+
+               // Camera setup
+               camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+               camera.position.z = 5;
+
+               // Renderer setup
+               renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true });
+               renderer.setSize(window.innerWidth, window.innerHeight);
+               renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+               // Create the starfield
+               createStarfield();
+
+               // Create a geometric shape (Icosahedron)
+               const geometry = new THREE.IcosahedronGeometry(1.5, 0);
+               const material = new THREE.MeshStandardMaterial({
+                    color: 0x4f46e5,
+                    emissive: 0xdb2777,
+                    roughness: 0.3,
+                    metalness: 0.6,
+                    wireframe: true,
+               });
+               shape = new THREE.Mesh(geometry, material);
+               scene.add(shape);
+
+               // Lighting
+               const ambientLight = new THREE.AmbientLight(0xffffff, 0.1);
+               scene.add(ambientLight);
+               const pointLight = new THREE.PointLight(0xffffff, 1);
+               pointLight.position.set(5, 5, 5);
+               scene.add(pointLight);
+
+               // Post-processing setup
+               composer = new THREE.EffectComposer(renderer);
+               composer.addPass(new THREE.RenderPass(scene, camera));
+
+               glitchPass = new THREE.GlitchPass();
+               glitchPass.enabled = false; // Start disabled
+               composer.addPass(glitchPass);
+
+
+               // Handle window resizing
+               window.addEventListener('resize', onWindowResize, false);
+               // Handle mouse movement
+               document.addEventListener('mousemove', onMouseMove, false);
+
+               animate();
+          }
+
+          // Function to create the starfield
+          function createStarfield() {
+               const starCount = 10000;
+               const positions = [];
+               const geometry = new THREE.BufferGeometry();
+
+               for (let i = 0; i < starCount; i++) {
+                    const x = (Math.random() - 0.5) * 2000;
+                    const y = (Math.random() - 0.5) * 2000;
+                    const z = (Math.random() - 0.5) * 2000;
+                    positions.push(x, y, z);
+               }
+
+               geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+
+               // Create a circular texture programmatically to avoid square stars
+               const canvas = document.createElement('canvas');
+               canvas.width = 64;
+               canvas.height = 64;
+               const context = canvas.getContext('2d');
+               const gradient = context.createRadialGradient(
+                    canvas.width / 2, canvas.height / 2, 0,
+                    canvas.width / 2, canvas.height / 2, canvas.width / 2
+               );
+               gradient.addColorStop(0, 'rgba(255,255,255,1)');
+               gradient.addColorStop(0.2, 'rgba(255,255,255,0.8)');
+               gradient.addColorStop(1, 'rgba(255,255,255,0)');
+               context.fillStyle = gradient;
+               context.fillRect(0, 0, canvas.width, canvas.height);
+               const starTexture = new THREE.CanvasTexture(canvas);
+
+
+               const material = new THREE.PointsMaterial({
+                    map: starTexture,
+                    size: 1.5,
+                    sizeAttenuation: true,
+                    transparent: true,
+                    alphaTest: 0.1 // Adjust for softer edges
+               });
+
+               starfield = new THREE.Points(geometry, material);
+               scene.add(starfield);
+          }
+
+          // --- Animation Loop ---
+          const clock = new THREE.Clock();
+          function animate() {
+               const elapsedTime = clock.getElapsedTime();
+
+               // Animate the shape
+               shape.rotation.y = .2 * elapsedTime;
+               shape.rotation.x = .2 * elapsedTime;
+
+               // Animate the starfield for a parallax effect
+               if (starfield) {
+                    starfield.rotation.y = -0.02 * elapsedTime;
+               }
+
+               // Use composer to render the scene with effects
+               composer.render();
+               requestAnimationFrame(animate);
+          }
+
+          // --- Event Handlers ---
+          function onWindowResize() {
+               camera.aspect = window.innerWidth / window.innerHeight;
+               camera.updateProjectionMatrix();
+               renderer.setSize(window.innerWidth, window.innerHeight);
+               composer.setSize(window.innerWidth, window.innerHeight);
+          }
+
+          function onMouseMove(event) {
+               // Move the shape subtly based on mouse position
+               const mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+               const mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+
+               gsap.to(shape.rotation, {
+                    duration: 1,
+                    x: mouseY * 0.5 + shape.rotation.x * 0.1,
+                    y: mouseX * 0.5 + shape.rotation.y * 0.1,
+                    ease: 'power2.out'
+               });
+          }
+
+          // --- Scroll Reveal Animation ---
+          function setupScrollReveal() {
+               const revealElements = document.querySelectorAll('.reveal');
+
+               const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                         if (entry.isIntersecting) {
+                              entry.target.classList.add('visible');
+                         }
+                    });
+               }, {
+                    threshold: 0.1
+               });
+
+               revealElements.forEach(el => {
+                    observer.observe(el);
+               });
+          }
+
+          // --- Glitch Synchronization Logic ---
+          function trigger3DGlitch(isWild) {
+               const canvas = document.getElementById('bg-canvas');
+               if (glitchPass && canvas) {
+                    canvas.style.opacity = '0.9';
+                    glitchPass.enabled = true;
+                    glitchPass.goWild = isWild;
+
+                    setTimeout(() => {
+                         glitchPass.enabled = false;
+                         canvas.style.opacity = '0.6';
+                    }, 400);
+               }
+          }
+
+          function runGlitchSequence(iterations) {
+               const typewriterDiv = document.querySelector('.typewriter');
+               if (!typewriterDiv || typewriterDiv.classList.contains('glitch-active')) {
+                    return;
+               }
+
+               typewriterDiv.style.setProperty('--glitch-iterations', iterations);
+               typewriterDiv.classList.add('glitch-active');
+
+               if (iterations === 1) {
+                    setTimeout(() => trigger3DGlitch(Math.random() < 0.5), 1275);
+               } else {
+                    setTimeout(() => trigger3DGlitch(true), 1275);
+                    setTimeout(() => trigger3DGlitch(false), 1275 + 2500);
+               }
+
+               const animationDuration = 2500 * iterations;
+               setTimeout(() => {
+                    typewriterDiv.classList.remove('glitch-active');
+               }, animationDuration + 100);
+          }
+
+          function scheduleSubsequentRandomGlitches() {
+               const minDelay = 30000; // 30 seconds
+               const maxDelay = 120000; // 2 minutes
+               const randomDelay = Math.random() * (maxDelay - minDelay) + minDelay;
+
+               setTimeout(() => {
+                    runGlitchSequence(2);
+                    scheduleSubsequentRandomGlitches();
+               }, randomDelay);
+          }
+
+
+          // --- Gemini API Project Idea Generator ---
+          async function generateProjectIdea() {
+               const generateCard = document.getElementById('generate-idea-card');
+               const content = document.getElementById('generate-idea-content');
+               const loader = document.getElementById('generate-idea-loader');
+
+               content.classList.add('hidden');
+               loader.classList.remove('hidden');
+               generateCard.style.cursor = 'wait';
+
+               const prompt = `Generate a single, creative, and futuristic project idea for a web developer's portfolio. The idea should be concise and inspiring. Respond with a single JSON object with two keys: "name" (a cool, short project name) and "description" (a one-sentence description of the project). Example: {"name": "Project Chronos", "description": "An interactive timeline visualizing the evolution of web technologies."}`;
+
+               const payload = {
+                    contents: [{
+                         parts: [{
+                              text: prompt
+                         }]
+                    }],
+                    generationConfig: {
+                         responseMimeType: "application/json",
+                         responseSchema: {
+                              type: "OBJECT",
+                              properties: {
+                                   "name": { "type": "STRING" },
+                                   "description": { "type": "STRING" }
+                              },
+                              required: ["name", "description"]
+                         }
+                    }
+               };
+
+               const apiKey = "";
+               const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+               try {
+                    const response = await fetch(apiUrl, {
+                         method: 'POST',
+                         headers: { 'Content-Type': 'application/json' },
+                         body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                         throw new Error(`API call failed with status: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+
+                    if (result.candidates && result.candidates.length > 0) {
+                         const idea = result.candidates[0].content.parts[0].text;
+                         const parsedIdea = JSON.parse(idea);
+                         addNewProjectCard(parsedIdea.name, parsedIdea.description);
+                    } else {
+                         console.error('No ideas generated from API.');
+                         addNewProjectCard('Ошибка генерации', 'Не удалось получить идею от API. Попробуйте снова.');
+                    }
+
+               } catch (error) {
+                    console.error('Error calling Gemini API:', error);
+                    addNewProjectCard('Сетевая ошибка', 'Не удалось связаться с API. Проверьте консоль.');
+               } finally {
+                    content.classList.remove('hidden');
+                    loader.classList.add('hidden');
+                    generateCard.style.cursor = 'pointer';
+               }
+          }
+
+          function addNewProjectCard(name, description) {
+               const projectsGrid = document.getElementById('projects-grid');
+               const generatorCard = document.getElementById('generate-idea-card');
+
+               const newCard = document.createElement('a');
+               newCard.href = '#';
+               newCard.className = 'project-card block glass-effect rounded-2xl overflow-hidden group';
+
+               newCard.innerHTML = `
+                <div class="p-6">
+                    <h3 class="text-2xl font-bold mb-2 gradient-text">${name}</h3>
+                    <p class="text-gray-400">${description}</p>
+                </div>
+            `;
+
+               projectsGrid.insertBefore(newCard, generatorCard);
+          }
+
+          // --- Initial Setup ---
+          document.addEventListener('DOMContentLoaded', () => {
+               const generateCard = document.getElementById('generate-idea-card');
+               if (generateCard) {
+                    generateCard.addEventListener('click', generateProjectIdea);
+               }
+
+               // Wait for the typing animation to finish
+               setTimeout(() => {
+                    // Run the first SINGLE glitch sequence immediately.
+                    runGlitchSequence(1);
+
+                    // Schedule the FIRST RANDOM (double) glitch with a shorter delay.
+                    const firstRandomMin = 15000; // 15 seconds
+                    const firstRandomMax = 60000; // 1 minute
+                    const firstRandomDelay = Math.random() * (firstRandomMax - firstRandomMin) + firstRandomMin;
+
+                    setTimeout(() => {
+                         runGlitchSequence(2); // Run the first random double glitch
+
+                         // Now, start the regular loop for all subsequent random glitches.
+                         scheduleSubsequentRandomGlitches();
+                    }, firstRandomDelay);
+
+               }, 3500); // Corresponds to the 'typing' animation duration
+          });
+
+          // --- GSAP for smooth animations (optional, but recommended) ---
+          const gsapScript = document.createElement('script');
+          gsapScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js';
+          gsapScript.onload = () => {
+               init3D();
+               setupScrollReveal();
+          };
+          document.head.appendChild(gsapScript);
+
+     </script>
+</body>
+
+</html>
